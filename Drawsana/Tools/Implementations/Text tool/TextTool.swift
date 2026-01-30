@@ -50,8 +50,8 @@ public class TextTool: NSObject, DrawingTool {
   /// The text tool has 3 different behaviors on drag depending on where your
   /// touch starts. See `DragHandler.swift` for their implementations.
   private var dragHandler: DragHandler?
-  private var selectedShape: TextShape?
-  private var originalText = ""
+  internal var selectedShape: TextShape?
+  internal var originalText = ""
   private var maxWidth: CGFloat = 320  // updated from drawing.size
   private weak var shapeUpdater: DrawsanaViewShapeUpdating?
   // internal for use by DragHandler subclasses
