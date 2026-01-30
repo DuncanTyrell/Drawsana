@@ -37,21 +37,22 @@ public class TextTool: NSObject, DrawingTool {
 
   public let isProgressive = false
   public let name: String = "Text"
-
+  public var shouldAllowEditing = true
+    
   // MARK: Public properties
 
   /// You may set yourself as the delegate to be notified when special selection
   /// events happen that you might want to react to. The core framework does
   /// not use this delegate.
   public weak var delegate: TextToolDelegate?
+  public var originalText = ""
 
   // MARK: Internal state
 
   /// The text tool has 3 different behaviors on drag depending on where your
   /// touch starts. See `DragHandler.swift` for their implementations.
   private var dragHandler: DragHandler?
-  internal var selectedShape: TextShape?
-  internal var originalText = ""
+  public var selectedShape: TextShape?
   private var maxWidth: CGFloat = 320  // updated from drawing.size
   private weak var shapeUpdater: DrawsanaViewShapeUpdating?
   // internal for use by DragHandler subclasses
@@ -193,15 +194,14 @@ public class TextTool: NSObject, DrawingTool {
 
     // Prepare interactive editing view
     context.toolSettings.interactiveView = editingView
-    editingView.becomeFirstResponder()
+    if shouldAllowEditing { editingView.becomeFirstResponder() }
   }
 
   /// If shape text has changed, notify operation stack so that undo works
   /// properly
-  private func finishEditing(context: ToolOperationContext) {
+  public func finishEditing(context: ToolOperationContext) {
     applyEditTextOperationIfTextHasChanged(context: context)
     selectedShape?.isBeingEdited = false
-    context.toolSettings.selectedShape = nil
     context.toolSettings.interactiveView = nil
     context.toolSettings.isPersistentBufferDirty = true
   }
@@ -228,7 +228,7 @@ public class TextTool: NSObject, DrawingTool {
 
   // MARK: Other helpers
 
-  func updateShapeFrame() {
+  public func updateShapeFrame() {
     guard let shape = selectedShape else { return }
     shape.boundingRect = computeBounds()
     // Shape jumps a little after editing unless we add this fudge factor
@@ -236,13 +236,28 @@ public class TextTool: NSObject, DrawingTool {
     updateTextView()
   }
 
-  func updateTextView() {
+  public func updateTextView() {
     guard let shape = selectedShape else { return }
     // Resetting text while markedTextRange exists breaks some keyboards.
     if editingView.textView.markedTextRange == nil {
       editingView.textView.text = shape.text
     }
     editingView.textView.font = shape.font
+      
+      if shape.text == "" {
+          
+      }
+      
+      if let intValue = Int(shape.text) {
+          if intValue >= 0 && intValue <= 20 {
+              shape.fillColor = .systemGreen
+          } else if intValue > 20 && intValue < 30 {
+              shape.fillColor = .orange
+          } else if intValue >= 30 {
+              shape.fillColor = .red
+          }
+      }
+      
     editingView.textView.textColor = shape.fillColor
     editingView.bounds = shape.boundingRect
     // Fudge factor to make shape and text view line up exactly
@@ -344,3 +359,4 @@ extension TextTool: UITextViewDelegate {
     return true
   }
 }
+
